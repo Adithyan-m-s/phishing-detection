@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishShield | AI URL Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PhishShield<span style="color: white; font-weight: 300;">.ai</span></h1>
+            <p class="subtitle">Advanced Machine Learning Phishing Detection System</p>
+        </header>
+
+        <div class="scanner-box glass-card">
+            <h2 id="main-heading">Shield Your Browsing</h2>
+            <p style="color: var(--text-muted);">Enter a URL to verify its safety and security score.</p>
+            
+            <form id="scan-form" class="search-form">
+                <input type="text" id="url-input" name="url" placeholder="https://example.com" required autocomplete="off">
+                <button type="submit" id="scan-btn">
+                    <span id="btn-text">SCAN URL</span>
+                    <i id="btn-loader" class="fas fa-circle-notch fa-spin" style="display: none;"></i>
+                </button>
+            </form>
+        </div>
+
+        <div id="result" class="result-container">
+            <div class="result-card glass-card">
+                <div id="result-icon" style="font-size: 4rem; margin-bottom: 1.5rem;"></div>
+                <h2 id="prediction-text" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></h2>
+                <p id="url-display" style="word-break: break-all; color: var(--text-muted);"></p>
+                
+                <div class="confidence-bar">
+                    <div id="confidence-fill" class="confidence-fill"></div>
+                </div>
+                <p>Confidence Level: <span id="confidence-val" style="color: var(--primary); font-weight: bold;">0%</span></p>
+                
+                <button onclick="resetScanner()" style="margin-top: 2rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">SCAN ANOTHER</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item glass-card">
+                <div class="stat-value">99.2%</div>
+                <div class="stat-label">Model Accuracy</div>
+            </div>
+            <div class="stat-item glass-card">
+                <div class="stat-value">50k+</div>
+                <div class="stat-label">URLs Scanned</div>
+            </div>
+            <div class="stat-item glass-card">
+                <div class="stat-value">< 1s</div>
+                <div class="stat-label">Scanning Speed</div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('login') }}" class="admin-link">Administrator Portal</a>
+
+    <script>
+        const form = document.getElementById('scan-form');
+        const result = document.getElementById('result');
+        const scannerBox = document.querySelector('.scanner-box');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const scanBtn = document.getElementById('scan-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('url-input').value;
+            
+            // Show loading
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+            scanBtn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: new URLSearchParams({ 'url': url })
+                });
+                const data = await response.json();
+
+                // Display Result
+                scannerBox.style.display = 'none';
+                result.style.display = 'block';
+                
+                const predText = document.getElementById('prediction-text');
+                const icon = document.getElementById('result-icon');
+                const fill = document.getElementById('confidence-fill');
+                
+                predText.textContent = data.prediction.toUpperCase();
+                document.getElementById('url-display').textContent = data.url;
+                document.getElementById('confidence-val').textContent = data.confidence + '%';
+                
+                if (data.prediction === 'Safe') {
+                    predText.className = 'prediction-safe';
+                    icon.innerHTML = '<i class="fas fa-shield-alt" style="color: #22c55e;"></i>';
+                    fill.style.background = '#22c55e';
+                } else {
+                    predText.className = 'prediction-phish';
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>';
+                    fill.style.background = '#ef4444';
+                }
+
+                setTimeout(() => {
+                    fill.style.width = data.confidence + '%';
+                }, 100);
+
+            } catch (err) {
+                alert('An error occurred during scanning.');
+            } finally {
+                btnText.style.display = 'inline-block';
+                btnLoader.style.display = 'none';
+                scanBtn.disabled = false;
+            }
+        });
+
+        function resetScanner() {
+            result.style.display = 'none';
+            scannerBox.style.display = 'block';
+            document.getElementById('url-input').value = '';
+            document.getElementById('confidence-fill').style.width = '0%';
+        }
+    </script>
+</body>
+</html>

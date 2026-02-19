@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | PhishShield</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <h1>Admin Dashboard</h1>
+            <a href="{{ url_for('logout') }}"
+                style="color: var(--danger); text-decoration: none; font-weight: bold;">LOGOUT</a>
+        </div>
+
+        <div class="glass-card" style="padding: 2rem; overflow-x: auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>URL</th>
+                        <th>Prediction</th>
+                        <th>Confidence</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>#{{ log.id }}</td>
+                        <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                            log.url }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-phish' if log.prediction == 'Phishing' else 'badge-safe' }}">
+                                {{ log.prediction }}
+                            </span>
+                        </td>
+                        <td>{{ log.confidence }}%</td>
+                        <td style="color: var(--text-muted);">{{ log.created_at }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">No scans
+                            recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
